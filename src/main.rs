@@ -1,6 +1,8 @@
 use rand::{distributions::Uniform, Rng};
 use std::collections::HashMap;
 
+const BIT_ARRAY_SIZE: usize = (u16::MAX as usize + 1) / 8; // 8K
+
 fn generate_random_nums() -> Vec<u16> {
     // Generate 64_000 unique random numbers in the range 0..64K
     let mut rng = rand::thread_rng();
@@ -26,8 +28,7 @@ fn generate_random_nums() -> Vec<u16> {
     random_numbers
 }
 
-fn convert_to_bit_array(random_numbers: &Vec<u16>) -> [u8; 8192] {
-    const BIT_ARRAY_SIZE: usize = (u16::MAX as usize + 1) / 8;
+fn convert_to_bit_array(random_numbers: &Vec<u16>) -> [u8; BIT_ARRAY_SIZE] {
     let mut bit_array: [u8; BIT_ARRAY_SIZE] = [0u8; BIT_ARRAY_SIZE]; // 8K
 
     for x in random_numbers {
@@ -40,7 +41,7 @@ fn convert_to_bit_array(random_numbers: &Vec<u16>) -> [u8; 8192] {
     bit_array
 }
 
-fn print_bit_array(bit_array: &[u8; 8192]) {
+fn print_bit_array(bit_array: &[u8; BIT_ARRAY_SIZE]) {
     let mut row = 0;
     let mut col = 0u8;
     for x in bit_array {
@@ -58,7 +59,7 @@ fn print_bit_array(bit_array: &[u8; 8192]) {
     println!();
 }
 
-fn print_missing_numbers(bit_array: &[u8; 8192]) {
+fn print_missing_numbers(bit_array: &[u8; BIT_ARRAY_SIZE]) {
     let mut missing_number_count = 0;
     let mut first_missing_number = 0;
 
@@ -68,7 +69,7 @@ fn print_missing_numbers(bit_array: &[u8; 8192]) {
         while bit_value != 0 {
             if x & bit_value == 0 {
                 missing_number_count += 1;
-                first_missing_number = ((8191 - index) * 8) + bit_pos;
+                first_missing_number = ((BIT_ARRAY_SIZE - 1 - index) * 8) + bit_pos;
             }
             bit_value <<= 1;
             bit_pos += 1;
