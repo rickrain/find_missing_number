@@ -29,18 +29,12 @@ fn generate_random_nums() -> Vec<u16> {
 fn convert_to_bit_array(random_numbers: &Vec<u16>) -> [u8; 8192] {
     const BIT_ARRAY_SIZE: usize = (u16::MAX as usize + 1) / 8;
     let mut bit_array: [u8; BIT_ARRAY_SIZE] = [0u8; BIT_ARRAY_SIZE]; // 8K
-    let mut bit_array_ptr = bit_array.as_mut_ptr();
 
     for x in random_numbers {
         let byte_index: usize = *x as usize / 8;
         let random_num_bit = 1u8 << (*x as usize - (byte_index * 8));
 
-        unsafe {
-            let tmp_bit_array_ptr = bit_array_ptr;
-            bit_array_ptr = bit_array_ptr.add((BIT_ARRAY_SIZE - 1) - byte_index);
-            *bit_array_ptr |= random_num_bit;
-            bit_array_ptr = tmp_bit_array_ptr;
-        }
+        bit_array[BIT_ARRAY_SIZE - 1 - byte_index] |= random_num_bit;
     }
 
     bit_array
