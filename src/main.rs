@@ -59,6 +59,30 @@ fn print_bit_array(bit_array: &[u8; BIT_ARRAY_SIZE]) {
     println!();
 }
 
+// Locates bits in a given byte that are not set (ie: 0).
+// Result is a tuple of 3 u8's, where 
+//   .0 == first missing bit 
+//   .1 == last missing bit
+//   .2 == total_missing bits
+fn missing_bits(x: u8) -> (u8, u8, u8) {
+    let mut total_missing_bits = 0u8;
+    let mut first_missing_bit = 0u8;
+    let mut last_missing_bit = 0u8;
+
+    let mut test_bit_value = 0b1000_0000u8;
+    for bit_pos in (1..=8).rev() {
+        if x & test_bit_value == 0 {
+            total_missing_bits += 1;
+            first_missing_bit = bit_pos;
+            if last_missing_bit == 0 {
+                last_missing_bit = bit_pos;
+            }
+        }
+        test_bit_value >>= 1;
+    }
+    (first_missing_bit, last_missing_bit, total_missing_bits)
+}
+
 fn print_missing_numbers(bit_array: &[u8; BIT_ARRAY_SIZE]) {
     let mut missing_number_count = 0;
     let mut first_missing_number = 0;
@@ -86,3 +110,21 @@ fn main() {
     print_bit_array(&bit_array);
     print_missing_numbers(&bit_array);
 }
+
+#[cfg(test)]
+mod tests {
+    use crate::missing_bits;
+
+    #[test]
+    fn first_missing_bit_works() {
+        assert_eq!((1, 8, 8), missing_bits(0b0000_0000u8));
+        assert_eq!((3, 8, 6), missing_bits(0b0000_0011u8));
+        assert_eq!((2, 8, 6), missing_bits(0b0001_0001u8));
+        assert_eq!((6, 8, 2), missing_bits(0b0101_1111u8));
+        assert_eq!((8, 8, 1), missing_bits(0b0111_1111u8));
+        assert_eq!((0, 0, 0), missing_bits(0b1111_1111u8));
+        assert_eq!((1, 7, 5), missing_bits(0b1001_1000u8));
+
+    }
+}
+
