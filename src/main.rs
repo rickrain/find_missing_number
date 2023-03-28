@@ -60,8 +60,8 @@ fn print_bit_array(bit_array: &[u8; BIT_ARRAY_SIZE]) {
 }
 
 // Locates bits in a given byte that are not set (ie: 0).
-// Result is a tuple of 3 u8's, where 
-//   .0 == first missing bit 
+// Result is a tuple of 3 u8's, where
+//   .0 == first missing bit
 //   .1 == last missing bit
 //   .2 == total_missing bits
 fn missing_bits(x: u8) -> (u8, u8, u8) {
@@ -72,36 +72,47 @@ fn missing_bits(x: u8) -> (u8, u8, u8) {
     let mut test_bit_value = 0b1000_0000u8;
     for bit_pos in (1..=8).rev() {
         if x & test_bit_value == 0 {
-            total_missing_bits += 1;
             first_missing_bit = bit_pos;
             if last_missing_bit == 0 {
                 last_missing_bit = bit_pos;
             }
+            total_missing_bits += 1;
         }
         test_bit_value >>= 1;
     }
     (first_missing_bit, last_missing_bit, total_missing_bits)
 }
 
-fn print_missing_numbers(bit_array: &[u8; BIT_ARRAY_SIZE]) {
-    let mut missing_number_count = 0;
-    let mut first_missing_number = 0;
+fn missing_numbers(bit_array: &[u8]) -> (usize, usize, usize) {
+    let mut first_missing_number = 0usize;
+    let mut last_missing_number = 0usize;
+    let mut total_missing_numbers = 0usize;
 
     for (index, x) in bit_array.iter().enumerate() {
-        let mut bit_value = 1u8;
-        let mut bit_pos = 0;
-        while bit_value != 0 {
-            if x & bit_value == 0 {
-                missing_number_count += 1;
-                first_missing_number = ((BIT_ARRAY_SIZE - 1 - index) * 8) + bit_pos;
-            }
-            bit_value <<= 1;
-            bit_pos += 1;
+        let missing_bits = missing_bits(*x);
+        if missing_bits.0 != 0 {
+            first_missing_number = ((bit_array.len() - 1 - index) * 8) + missing_bits.0 as usize;
         }
+        if missing_bits.1 != 0 && last_missing_number == 0 {
+            last_missing_number = ((bit_array.len() - 1 - index) * 8) + missing_bits.1 as usize;
+        }
+
+        total_missing_numbers += missing_bits.2 as usize;
     }
 
-    println!("Missing numbers: {}", missing_number_count);
-    println!("First missing number: {}", first_missing_number);
+    (
+        first_missing_number,
+        last_missing_number,
+        total_missing_numbers,
+    )
+}
+
+fn print_missing_numbers(bit_array: &[u8]) {
+    let missing_numbers = missing_numbers(bit_array);
+
+    println!("First missing number: {}", missing_numbers.0);
+    println!("Last missing number: {}", missing_numbers.1);
+    println!("Total missing numbers: {}", missing_numbers.2);
 }
 
 fn main() {
@@ -113,10 +124,10 @@ fn main() {
 
 #[cfg(test)]
 mod tests {
-    use crate::missing_bits;
+    use crate::{missing_bits, missing_numbers};
 
     #[test]
-    fn first_missing_bit_works() {
+    fn missing_bits_works() {
         assert_eq!((1, 8, 8), missing_bits(0b0000_0000u8));
         assert_eq!((3, 8, 6), missing_bits(0b0000_0011u8));
         assert_eq!((2, 8, 6), missing_bits(0b0001_0001u8));
@@ -124,7 +135,30 @@ mod tests {
         assert_eq!((8, 8, 1), missing_bits(0b0111_1111u8));
         assert_eq!((0, 0, 0), missing_bits(0b1111_1111u8));
         assert_eq!((1, 7, 5), missing_bits(0b1001_1000u8));
+        assert_eq!((4, 6, 3), missing_bits(0b1100_0111u8));
+    }
 
+    #[test]
+    fn missing_numbers_works() {
+        assert_eq!(
+            (6, 14, 5),
+            missing_numbers(&[0b1111_1111, 0b1100_0111, 0b0101_1111])
+        );
+        assert_eq!(
+            (17, 24, 3),
+            missing_numbers(&[0b0111_1100, 0b1111_1111, 0b1111_1111])
+        );
+        assert_eq!(
+            (0, 0, 0),
+            missing_numbers(&[0b1111_1111, 0b1111_1111, 0b1111_1111])
+        );
+        assert_eq!(
+            (1, 24, 5),
+            missing_numbers(&[0b0111_1111, 0b1010_1011, 0b1111_1110])
+        );
+        assert_eq!(
+            (13, 13, 1),
+            missing_numbers(&[0b1111_1111, 0b1110_1111, 0b1111_1111])
+        );
     }
 }
-
