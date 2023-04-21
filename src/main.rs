@@ -1,12 +1,12 @@
 use rand::{distributions::Uniform, Rng};
 use std::collections::HashMap;
 
-const BIT_ARRAY_SIZE: usize = (u16::MAX as usize + 1) / 8; // 8K
+const BIT_ARRAY_SIZE: usize = (u16::MAX as usize + 1) / 8; // 8192
 
 fn generate_random_nums() -> Vec<u16> {
-    // Generate 64_000 unique random numbers in the range 0..64K
+    // Generate 64_000 unique random numbers in the range 0..65_535
     let mut rng = rand::thread_rng();
-    let range = Uniform::new(0, u16::MAX); // 0..64K
+    let range = Uniform::new_inclusive(0, u16::MAX);
     let mut num_map = HashMap::<u16, u16>::new();
 
     let random_numbers: Vec<u16> = (0..64_000)
@@ -64,17 +64,17 @@ fn print_bit_array(bit_array: &[u8; BIT_ARRAY_SIZE]) {
 //   .0 == first missing bit
 //   .1 == last missing bit
 //   .2 == total_missing bits
-fn missing_bits(x: u8) -> (u8, u8, u8) {
+fn missing_bits(x: u8) -> (Option<u8>, Option<u8>, u8) {
     let mut total_missing_bits = 0u8;
-    let mut first_missing_bit = 0u8;
-    let mut last_missing_bit = 0u8;
+    let mut first_missing_bit: Option<u8> = None;
+    let mut last_missing_bit: Option<u8> = None;
 
     let mut test_bit_value = 0b1000_0000u8;
     for bit_pos in (1..=8).rev() {
         if x & test_bit_value == 0 {
-            first_missing_bit = bit_pos;
-            if last_missing_bit == 0 {
-                last_missing_bit = bit_pos;
+            first_missing_bit = Some(bit_pos);
+            if last_missing_bit.is_none() {
+                last_missing_bit = Some(bit_pos);
             }
             total_missing_bits += 1;
         }
@@ -90,11 +90,13 @@ fn missing_numbers(bit_array: &[u8]) -> (usize, usize, usize) {
 
     for (index, x) in bit_array.iter().enumerate() {
         let missing_bits = missing_bits(*x);
-        if missing_bits.0 != 0 {
-            first_missing_number = ((bit_array.len() - 1 - index) * 8) + missing_bits.0 as usize;
+        if let Some(num) = missing_bits.0 {
+            first_missing_number = ((bit_array.len() - 1 - index) * 8) + num as usize;
         }
-        if missing_bits.1 != 0 && last_missing_number == 0 {
-            last_missing_number = ((bit_array.len() - 1 - index) * 8) + missing_bits.1 as usize;
+        if let Some(num) = missing_bits.1 {
+            if last_missing_number == 0 {
+                last_missing_number = ((bit_array.len() - 1 - index) * 8) + num as usize;
+            }
         }
 
         total_missing_numbers += missing_bits.2 as usize;
@@ -128,14 +130,14 @@ mod tests {
 
     #[test]
     fn missing_bits_works() {
-        assert_eq!((1, 8, 8), missing_bits(0b0000_0000u8));
-        assert_eq!((3, 8, 6), missing_bits(0b0000_0011u8));
-        assert_eq!((2, 8, 6), missing_bits(0b0001_0001u8));
-        assert_eq!((6, 8, 2), missing_bits(0b0101_1111u8));
-        assert_eq!((8, 8, 1), missing_bits(0b0111_1111u8));
-        assert_eq!((0, 0, 0), missing_bits(0b1111_1111u8));
-        assert_eq!((1, 7, 5), missing_bits(0b1001_1000u8));
-        assert_eq!((4, 6, 3), missing_bits(0b1100_0111u8));
+        assert_eq!((Some(1), Some(8), 8), missing_bits(0b0000_0000u8));
+        assert_eq!((Some(3), Some(8), 6), missing_bits(0b0000_0011u8));
+        assert_eq!((Some(2), Some(8), 6), missing_bits(0b0001_0001u8));
+        assert_eq!((Some(6), Some(8), 2), missing_bits(0b0101_1111u8));
+        assert_eq!((Some(8), Some(8), 1), missing_bits(0b0111_1111u8));
+        assert_eq!((None, None, 0), missing_bits(0b1111_1111u8));
+        assert_eq!((Some(1), Some(7), 5), missing_bits(0b1001_1000u8));
+        assert_eq!((Some(4), Some(6), 3), missing_bits(0b1100_0111u8));
     }
 
     #[test]
