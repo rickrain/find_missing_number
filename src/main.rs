@@ -83,15 +83,15 @@ fn missing_bits(x: u8) -> (Option<u8>, Option<u8>, u8) {
     (first_missing_bit, last_missing_bit, total_missing_bits)
 }
 
-fn missing_numbers(bit_array: &[u8]) -> (usize, usize, usize) {
-    let mut first_missing_number = 0usize;
+fn missing_numbers(bit_array: &[u8]) -> (Option<usize>, Option<usize>, usize) {
+    let mut first_missing_number: Option<usize> = None;
     let mut last_missing_number: Option<usize> = None;
     let mut total_missing_numbers = 0usize;
 
     for (index, x) in bit_array.iter().enumerate() {
         let missing_bits = missing_bits(*x);
         if let Some(num) = missing_bits.0 {
-            first_missing_number = ((bit_array.len() - 1 - index) * 8) + num as usize;
+            first_missing_number = Some(((bit_array.len() - 1 - index) * 8) + num as usize);
         }
         if let Some(num) = missing_bits.1 {
             if last_missing_number.is_none() {
@@ -103,8 +103,8 @@ fn missing_numbers(bit_array: &[u8]) -> (usize, usize, usize) {
     }
 
     (
-        first_missing_number, 
-        last_missing_number.unwrap(), // Safe to unwrap since we know there will always be one
+        first_missing_number,
+        last_missing_number,
         total_missing_numbers,
     )
 }
@@ -112,8 +112,12 @@ fn missing_numbers(bit_array: &[u8]) -> (usize, usize, usize) {
 fn print_missing_numbers(bit_array: &[u8]) {
     let missing_numbers = missing_numbers(bit_array);
 
-    println!("First missing number: {}", missing_numbers.0);
-    println!("Last missing number: {}", missing_numbers.1);
+    if let Some(num) = missing_numbers.0 {
+        println!("First missing number: {}", num);
+    }
+    if let Some(num) = missing_numbers.1 {
+        println!("Last missing number: {}", num);
+    }
     println!("Total missing numbers: {}", missing_numbers.2);
 }
 
@@ -143,23 +147,23 @@ mod tests {
     #[test]
     fn missing_numbers_works() {
         assert_eq!(
-            (6, 14, 5),
+            (Some(6), Some(14), 5),
             missing_numbers(&[0b1111_1111, 0b1100_0111, 0b0101_1111])
         );
         assert_eq!(
-            (17, 24, 3),
+            (Some(17), Some(24), 3),
             missing_numbers(&[0b0111_1100, 0b1111_1111, 0b1111_1111])
         );
         assert_eq!(
-            (0, 0, 0),
+            (None, None, 0),
             missing_numbers(&[0b1111_1111, 0b1111_1111, 0b1111_1111])
         );
         assert_eq!(
-            (1, 24, 5),
+            (Some(1), Some(24), 5),
             missing_numbers(&[0b0111_1111, 0b1010_1011, 0b1111_1110])
         );
         assert_eq!(
-            (13, 13, 1),
+            (Some(13), Some(13), 1),
             missing_numbers(&[0b1111_1111, 0b1110_1111, 0b1111_1111])
         );
     }
