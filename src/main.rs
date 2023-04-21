@@ -85,7 +85,7 @@ fn missing_bits(x: u8) -> (Option<u8>, Option<u8>, u8) {
 
 fn missing_numbers(bit_array: &[u8]) -> (usize, usize, usize) {
     let mut first_missing_number = 0usize;
-    let mut last_missing_number = 0usize;
+    let mut last_missing_number: Option<usize> = None;
     let mut total_missing_numbers = 0usize;
 
     for (index, x) in bit_array.iter().enumerate() {
@@ -94,8 +94,8 @@ fn missing_numbers(bit_array: &[u8]) -> (usize, usize, usize) {
             first_missing_number = ((bit_array.len() - 1 - index) * 8) + num as usize;
         }
         if let Some(num) = missing_bits.1 {
-            if last_missing_number == 0 {
-                last_missing_number = ((bit_array.len() - 1 - index) * 8) + num as usize;
+            if last_missing_number.is_none() {
+                last_missing_number = Some(((bit_array.len() - 1 - index) * 8) + num as usize);
             }
         }
 
@@ -103,8 +103,8 @@ fn missing_numbers(bit_array: &[u8]) -> (usize, usize, usize) {
     }
 
     (
-        first_missing_number,
-        last_missing_number,
+        first_missing_number, 
+        last_missing_number.unwrap(), // Safe to unwrap since we know there will always be one
         total_missing_numbers,
     )
 }
