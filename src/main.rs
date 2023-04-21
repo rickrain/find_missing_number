@@ -33,7 +33,8 @@ fn convert_to_bit_array(random_numbers: &Vec<u16>) -> [u8; BIT_ARRAY_SIZE] {
 
     for x in random_numbers {
         let byte_index: usize = *x as usize / 8;
-        let random_num_bit = 1u8 << (*x as usize - (byte_index * 8));
+        let bit_index = *x % 8;
+        let random_num_bit = 1u8 << bit_index;
 
         bit_array[BIT_ARRAY_SIZE - 1 - byte_index] |= random_num_bit;
     }
@@ -70,7 +71,7 @@ fn missing_bits(x: u8) -> (Option<u8>, Option<u8>, u8) {
     let mut last_missing_bit: Option<u8> = None;
 
     let mut test_bit_value = 0b1000_0000u8;
-    for bit_pos in (1..=8).rev() {
+    for bit_pos in (0..=7).rev() {
         if x & test_bit_value == 0 {
             first_missing_bit = Some(bit_pos);
             if last_missing_bit.is_none() {
@@ -134,24 +135,24 @@ mod tests {
 
     #[test]
     fn missing_bits_works() {
-        assert_eq!((Some(1), Some(8), 8), missing_bits(0b0000_0000u8));
-        assert_eq!((Some(3), Some(8), 6), missing_bits(0b0000_0011u8));
-        assert_eq!((Some(2), Some(8), 6), missing_bits(0b0001_0001u8));
-        assert_eq!((Some(6), Some(8), 2), missing_bits(0b0101_1111u8));
-        assert_eq!((Some(8), Some(8), 1), missing_bits(0b0111_1111u8));
+        assert_eq!((Some(0), Some(7), 8), missing_bits(0b0000_0000u8));
+        assert_eq!((Some(2), Some(7), 6), missing_bits(0b0000_0011u8));
+        assert_eq!((Some(1), Some(7), 6), missing_bits(0b0001_0001u8));
+        assert_eq!((Some(5), Some(7), 2), missing_bits(0b0101_1111u8));
+        assert_eq!((Some(7), Some(7), 1), missing_bits(0b0111_1111u8));
         assert_eq!((None, None, 0), missing_bits(0b1111_1111u8));
-        assert_eq!((Some(1), Some(7), 5), missing_bits(0b1001_1000u8));
-        assert_eq!((Some(4), Some(6), 3), missing_bits(0b1100_0111u8));
+        assert_eq!((Some(0), Some(6), 5), missing_bits(0b1001_1000u8));
+        assert_eq!((Some(3), Some(5), 3), missing_bits(0b1100_0111u8));
     }
 
     #[test]
     fn missing_numbers_works() {
         assert_eq!(
-            (Some(6), Some(14), 5),
+            (Some(5), Some(13), 5),
             missing_numbers(&[0b1111_1111, 0b1100_0111, 0b0101_1111])
         );
         assert_eq!(
-            (Some(17), Some(24), 3),
+            (Some(16), Some(23), 3),
             missing_numbers(&[0b0111_1100, 0b1111_1111, 0b1111_1111])
         );
         assert_eq!(
@@ -159,11 +160,11 @@ mod tests {
             missing_numbers(&[0b1111_1111, 0b1111_1111, 0b1111_1111])
         );
         assert_eq!(
-            (Some(1), Some(24), 5),
+            (Some(0), Some(23), 5),
             missing_numbers(&[0b0111_1111, 0b1010_1011, 0b1111_1110])
         );
         assert_eq!(
-            (Some(13), Some(13), 1),
+            (Some(12), Some(12), 1),
             missing_numbers(&[0b1111_1111, 0b1110_1111, 0b1111_1111])
         );
     }
