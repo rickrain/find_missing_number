@@ -1,4 +1,4 @@
-use rand::{distributions::Uniform, Rng};
+use rand::{Rng, distributions::Uniform};
 use std::collections::HashMap;
 
 const BIT_ARRAY_SIZE: usize = (u16::MAX as usize + 1) / 8; // 8192
@@ -66,21 +66,15 @@ fn print_bit_array(bit_array: &[u8; BIT_ARRAY_SIZE]) {
 //   .1 == last missing bit
 //   .2 == total_missing bits
 fn missing_bits(x: u8) -> (Option<u8>, Option<u8>, u8) {
-    let mut total_missing_bits = 0u8;
-    let mut first_missing_bit: Option<u8> = None;
-    let mut last_missing_bit: Option<u8> = None;
+    // For the value passed in 'x', create a vector of x's bits that are 0.
+    // Ex. x: 7, missing_positions: [3, 4, 5, 6, 7]
+    // Ex. x: 29, missing_positions: [1, 5, 6, 7]
+    let missing_positions: Vec<u8> = (0..8).filter(|&bit| x & (1 << bit) == 0).collect();
 
-    let mut test_bit_value = 0b1000_0000u8;
-    for bit_pos in (0..=7).rev() {
-        if x & test_bit_value == 0 {
-            first_missing_bit = Some(bit_pos);
-            if last_missing_bit.is_none() {
-                last_missing_bit = Some(bit_pos);
-            }
-            total_missing_bits += 1;
-        }
-        test_bit_value >>= 1;
-    }
+    let first_missing_bit = missing_positions.first().copied();
+    let last_missing_bit = missing_positions.last().copied();
+    let total_missing_bits = missing_positions.len() as u8;
+
     (first_missing_bit, last_missing_bit, total_missing_bits)
 }
 
