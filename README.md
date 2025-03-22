@@ -1,3 +1,5 @@
+[![CI](https://github.com/rickrain/find_missing_number/actions/workflows/rust.yml/badge.svg)](https://github.com/rickrain/find_missing_number/actions/workflows/rust.yml)
+
 # Find the missing number
 
 This repository is a Rust implementation to find the first missing number in a collection of randomly generated numbers.
